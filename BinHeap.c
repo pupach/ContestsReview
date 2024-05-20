@@ -4,35 +4,15 @@
 #include <string.h>
 
 #define MAX_SIZE_ARR 2000000
-#define INF_VAL_MAX   100000000000000000
-#define INF_VAL_MIN   -2000000000
-#define MAX_SIZE_COM   20
-
-#define LOG(...)    \
-//    fprintf(stderr, __VA_ARGS__)
+#define INF_VAL_MAX  100000000000000000
+#define INF_VAL_MIN  -2000000000
+#define MAX_SIZE_COM 20
 
 struct
 {
     long long int value;
-    int numb_op;
-
+    int           numb_op;
 }typedef Elem_heap;
-
-
-
-void swap(Elem_heap *l1, Elem_heap *l2)
-{
-    Elem_heap x = *l1;
-    *l1 = *l2;
-    *l2 = x;
-}
-
-void swap_ptr(Elem_heap **l1, Elem_heap **l2)
-{
-    Elem_heap *x = *l1;
-    *l1 = *l2;
-    *l2 = x;
-}
 
 struct
 {
@@ -41,6 +21,20 @@ struct
     int size;
     Elem_heap arr_heap[MAX_SIZE_ARR];
 }typedef BinHeap;
+
+void swap(Elem_heap *element_1, Elem_heap *element_2)
+{
+    Elem_heap temp = *element_1;
+    *element_1 = *element_2;
+    *element_2 = temp;
+}
+
+void swap_ptr(Elem_heap **element_1, Elem_heap **element_2)
+{
+    Elem_heap *temp = *element_1;
+    *element_1 = *element_2;
+    *element_2 = temp;
+}
 
 Elem_heap *get_ptr(BinHeap *heap, int index)
 {
@@ -58,11 +52,8 @@ void sift_up(BinHeap *heap, int index)
     {
         int parent = (index - 1) / 2;
 
-        LOG("cmp_elem_heap %d and %d, res = %d\n", get_ptr(heap, index)->value, get_ptr(heap, parent)->value, cmp_elem_heap(get_ptr(heap, index), get_ptr(heap, parent)));
-
         if(cmp_elem_heap(get_ptr(heap, index), get_ptr(heap, parent)) < 0)
         {
-            LOG("swap %d and %d\n", index, parent);
             swap(get_ptr(heap, index), get_ptr(heap, parent));
             swap_ptr(heap->ptr_elem_heap + get_ptr(heap, index)->numb_op, heap->ptr_elem_heap + get_ptr(heap, parent)->numb_op);
 
@@ -144,6 +135,7 @@ void init_BinHeap(BinHeap *heap)
     heap->size = 0;
     heap->counter_op = 0;
 }
+
 int main()
 {
     int amount_op = 0, index = 0;
@@ -156,14 +148,6 @@ int main()
 
     for(int i = 0; i < amount_op; i++)
     {
-        LOG("heap.size = %d\n", heap.size);
-
-        for(int j = 0; j < 10; j++)
-        {
-            LOG("%lld ", heap.arr_heap[j].value);
-        }
-        LOG("\n");
-
         scanf("%s", command);
 
         if(strcmp(command, "insert") == 0)
@@ -175,7 +159,6 @@ int main()
         {
             scanf("%d %lld", &index, &val);
             (heap.ptr_elem_heap[index])->value -= val;
-            LOG("decreaseKey cu_value = %lld number = %d\n", (heap.ptr_elem_heap[index])->value, (heap.ptr_elem_heap[index] - heap.arr_heap));
             if((val > 0) && ((heap.ptr_elem_heap[index] - heap.arr_heap) != 0))
             {
                 sift_up(&heap, (heap.ptr_elem_heap[index] - heap.arr_heap));
