@@ -25,7 +25,7 @@ void swap(Elem_heap *l1, Elem_heap *l2)
 struct
 {
   int size;
-  Elem_heap arr_heap[MAX_SIZE_ARR];
+  Elem_heap *arr_heap;
 } typedef BinHeap;
 
 int sift_up_min(BinHeap *heap, int index);
@@ -360,6 +360,7 @@ void init_BinHeap(BinHeap *heap, int size)
 {
   int amount = 1;
   int counter = 0;
+  heap->arr = (Elem_heap *)calloc(size, sizeof(Elem_heap));
   for(int i = 0; i < size; i++)
   {
     if(i >= (amount - 1))
@@ -379,6 +380,7 @@ int main()
   scanf("%d", &amount_op);
 
   BinHeap heap;
+    
   init_BinHeap(&heap, MAX_SIZE_ARR);
 
   for(int i = 0; i < amount_op; i++)
@@ -422,4 +424,5 @@ int main()
       printf("%d\n", heap.size);
     }
   }
+free(heap->arr);
 }
