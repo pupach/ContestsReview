@@ -385,7 +385,7 @@ int main()
 
   for(int i = 0; i < amount_op; i++)
   {
-    scanf("%s", command);
+    scanf("%*s", MAX_SIZE_COM, command);
 
     if(strcmp(command, "insert") == 0)
     {
