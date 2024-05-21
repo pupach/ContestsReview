@@ -4,10 +4,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
-#define PowerUniverse 2147483647
-#define MAX_RAND 1000000000
-#define MAX_SIZE_TABLE 10000000
-#define MAX_SIZE_CONSTS 3
+
 #define MAX_SIZE_COM 3
 
 extern struct HashTable;
@@ -23,18 +20,18 @@ typedef struct
 } ElemTable;
 
 typedef struct{
-    int size;
-    int capacity;
-    bool nul;
-    int consts[2];
-    int (*HashFunc)(struct HashTable *, ElemToUse);
+    int       size;
+    int       capacity;
+    bool      nul;
+    int       consts[2];
+    int       (*HashFunc)(struct HashTable *, ElemToUse);
     ElemTable *arr;
 } HashTable;
 
 int MainHashFunc(HashTable *table, ElemToUse ElenToHash)
 {
   int hash =  (
-                (ElenToHash * table->consts[0] + table->consts[1])
+                (ElenToHash *table->consts[0] + table->consts[1])
                 % table->consts[2] % table->capacity + table->capacity
               ) % table->capacity;
   return hash;
