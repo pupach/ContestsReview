@@ -81,19 +81,19 @@ void RightRotate(ElemTree *head)
   head->left = to_change;
 }
 
-ElemTree *Zig(ElemTree *head)
+ElemTree *Zig(ElemTree *root_to_zig)
 {
-  ElemTree *father      = GetParent(head);
+  ElemTree *father      = GetParent(root_to_zig);
   ElemTree *grandfather = GetParent(father);
   
-  if(father == NULL)  return head;
+  if(father == NULL)  return root_to_zig;
   else if(grandfather == NULL)
   {
-    if(father->left == head)
+    if(father->left == root_to_zig)
     {
       RightRotate(father);
     }
-    else if(father->right == head)
+    else if(father->right == root_to_zig)
     {
       LeftRotate(father);
     }
@@ -102,22 +102,22 @@ ElemTree *Zig(ElemTree *head)
       LOG("ERRRRRORRRRR\n");
     }
   }
-  else if((grandfather->left == father) && (father->left == head))
+  else if((grandfather->left == father) && (father->left == root_to_zig))
   {
     RightRotate(grandfather);
     RightRotate(father);
   }
-  else if((grandfather->right == father) && (father->right == head))
+  else if((grandfather->right == father) && (father->right == root_to_zig))
   {
     LeftRotate(grandfather);
     LeftRotate(father);
   }
-  else if((grandfather->left == father) && (father->right == head))
+  else if((grandfather->left == father) && (father->right == root_to_zig))
   {
     LeftRotate(father);
     RightRotate(grandfather);
   }
-  else if((grandfather->right == father) && (father->left == head))
+  else if((grandfather->right == father) && (father->left == root_to_zig))
   {
     RightRotate(father);
     LeftRotate(grandfather);
@@ -126,7 +126,7 @@ ElemTree *Zig(ElemTree *head)
   {
     LOG("ERRRRRORRRRR\n");
   }
-  return head;
+  return root_to_zig;
 }
 
 ElemTree *Splay(ElemTree *elem)
@@ -240,7 +240,10 @@ int main()
 
 
   ElemTree *arr_f = (ElemTree *)calloc(AmountCom, sizeof(ElemTree));
+  if(arr_f == NULL) return -1;
+       
   ElemTree *arr_s = (ElemTree *)calloc(AmountCom, sizeof(ElemTree));
+  if(arr_f == NULL) return -1;
   ElemTree *head_f = NULL;
 
   for(int i = 0; i < AmountCom; i++) {
