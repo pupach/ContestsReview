@@ -6,6 +6,8 @@
 #include <time.h>
 
 #define MAX_SIZE_COM 3
+#define MAX_SIZE_CONST 3
+
 
 extern struct HashTable;
 
@@ -23,7 +25,7 @@ typedef struct{
     int       size;
     int       capacity;
     bool      nul;
-    int       consts[2];
+    int       consts[MAX_SIZE_CONST];
     int       (*HashFunc)(struct HashTable *, ElemToUse);
     ElemTable *arr;
 } HashTable;
@@ -44,8 +46,11 @@ void InitTable(HashTable *table, int capacity, int(*HashFunc)(struct HashTable *
   table->size = 0;
   table->nul = false;
   table->arr = (ElemTable *)calloc(capacity, sizeof(ElemTable));
+  if(table->arr == NULL)  return;
+    
   if(head_table) {
     HashTable *arr = (HashTable *) calloc(capacity, sizeof(HashTable));
+    if(arr == NULL)  return;
     for (int i = 0; i < capacity; i++) {
       table->arr[i].val = arr + i;
     }
@@ -58,8 +63,8 @@ bool FindElemTable(HashTable *table, ElemToUse ElemToFind)
   if(table->capacity == 0)                  return false;
   int hash = table->HashFunc(table, ElemToFind);
   if(table->arr[hash].size == 0)            return false;
-  HashTable *t = table->arr[hash].val;
-  if(t->capacity == 0)                      return false;
+  HashTable *second_table = table->arr[hash].val;
+  if(second_table->capacity == 0)                      return false;
   int hash_new = table->HashFunc(table->arr[hash].val, ElemToFind);
   if(t->arr[hash_new].size == 0)            return false;
   if(t->arr[hash_new].arr[0] != ElemToFind) return false;
@@ -70,6 +75,7 @@ bool FindElemTable(HashTable *table, ElemToUse ElemToFind)
 int FindCollision(HashTable *table, int* val, int len_val)
 {
   int *arr = (int *)calloc(table->capacity, sizeof(int));
+  if(arr == NULL)  return -1;
   
   for(int i = 0; i < len_val; i++)
   {
@@ -111,6 +117,8 @@ void GenFirstHashFunc(HashTable *table, int *val, int AmountCom, int ogranich)
   for(int i = 0; i < table->capacity; i++) {
     if (table->arr[i].size != 0) {
       table->arr[i].arr = (int *) calloc(sizeof(int), table->arr[i].size);
+      if(table->arr[i].arr == NULL)  return;
+        
       InitTable(table->arr[i].val, table->arr[i].size * 4, &MainHashFunc, true);
     }
   }
@@ -123,6 +131,15 @@ void GenFirstHashFunc(HashTable *table, int *val, int AmountCom, int ogranich)
   }
 }
 
+void GenSecondHashFunc(HashTable *table)
+{
+  for(int i = 0; i < table.capacity; i++)
+  {
+    GenFirstHashFunc(table.arr[i].val, table.arr[i].arr, table.arr[i].step, table.arr[i].size);
+  }
+
+}
+
 int main()
 {
   char str[MAX_SIZE_COM] = {};
@@ -130,6 +147,8 @@ int main()
   scanf("%d", &AmountCom);
 
   int *val = (int *)calloc(sizeof(int), AmountCom);
+  if(val == NULL)  return -1;
+    
   HashTable table = {};
   InitTable(&table, AmountCom, &MainHashFunc, true);
   srand(time(NULL));
@@ -143,10 +162,7 @@ int main()
   }
 
   GenFirstHashFunc(&table, val, AmountCom, 4 * table.capacity);
-  for(int i = 0; i < table.capacity; i++)
-  {
-    GenFirstHashFunc(table.arr[i].val, table.arr[i].arr, table.arr[i].step, table.arr[i].size);
-  }
+  GenSecondHashFunc(&table);
 
   do{
     scanf("%s", str);
@@ -160,4 +176,8 @@ int main()
     else    printf("NO\n");
 
   } while(str[0] != '.');
+
+free(val);
+free(table.arr[0].val);
+free(table.arr);
 }
