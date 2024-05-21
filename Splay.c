@@ -4,14 +4,8 @@
 #include <string.h>
 #include <assert.h>
 
-
-#define PowerUniverse 2147483647
-#define MAX_RAND 1000000000
-#define MAX_SIZE_TABLE 10000000
-#define MAX_SIZE_CONSTS 30
-#define MAX(a, b) \
-  (a > b ? a : b)
-#define MAX_SIZE_COM 3
+#define INIT_X 100000
+#define INIT_Y 600
 #define LOG(args...) \
        //   fprintf(stderr, args)
 
@@ -21,29 +15,26 @@ typedef long long int ElemToUse;
 
 typedef struct
 {
-    struct ElemTree *prev;
-    char *val_f;
-    char *val_s;
-    struct ElemTree* right;
-    struct ElemTree* left;
-}ElemTree;
+  struct  ElemTree  *prev;
+  char              *val_f;
+  char              *val_s;
+  struct  ElemTree  *right;
+  struct  ElemTree  *left;
+} ElemTree;
 
 typedef struct{
-    ElemTree *min;
-    ElemTree *max;
-}SlicersTree;
+  ElemTree *min;
+  ElemTree *max;
+} SlicersTree;
 
 ElemTree *GetParent(ElemTree *elem)
 {
-  if(elem == NULL) return  NULL;
-  return elem->prev;
-
+  return (elem == NULL) ? NULL : elem->prev;
 }
 
 void SetParent(ElemTree *elem, ElemTree *parent)
 {
-  if(elem == NULL) return ;
-  elem->prev = parent;
+  if(elem != NULL) elem->prev = parent;
 }
 
 void LeftRotate(ElemTree *head)
@@ -52,29 +43,20 @@ void LeftRotate(ElemTree *head)
   ElemTree *to_rotate = head->right;
   ElemTree *prev_head = head->prev;
   ElemTree *to_change = NULL;
+  
   if(to_rotate != NULL )    to_change = to_rotate->left;
-
 
   if(head->prev != NULL)
   {
-    if (prev_head->left == head)
-    {
-      prev_head->left = to_rotate;
-    }
-    else
-    {
-      prev_head->right = to_rotate;
-    }
+    (prev_head->left == head) ? (prev_head->left = to_rotate) : (prev_head->right = to_rotate);
   }
 
   to_rotate->prev = prev_head;
   to_rotate->left  = head;
   head->prev = to_rotate;
 
-
   if(to_change != NULL)   to_change->prev = head;
   head->right = to_change;
-
 }
 
 void RightRotate(ElemTree *head)
@@ -83,34 +65,27 @@ void RightRotate(ElemTree *head)
   ElemTree *to_rotate = head->left;
   ElemTree *prev_head = head->prev;
   ElemTree *to_change = NULL;
+  
   if(to_rotate != NULL )    to_change = to_rotate->right;
 
   if(head->prev != NULL)
   {
-    if (prev_head->left == head)
-    {
-      prev_head->left = to_rotate;
-    }
-    else
-    {
-      prev_head->right = to_rotate;
-    }
+    (prev_head->left == head) ? (prev_head->left = to_rotate) : (prev_head->right = to_rotate);
   }
 
   to_rotate->prev = prev_head;
   to_rotate->right  = head;
   head->prev = to_rotate;
 
-
   if(to_change != NULL)   to_change->prev = head;
   head->left = to_change;
 }
-
 
 ElemTree *Zig(ElemTree *head)
 {
   ElemTree *father      = GetParent(head);
   ElemTree *grandfather = GetParent(father);
+  
   if(father == NULL)  return head;
   else if(grandfather == NULL)
   {
@@ -203,7 +178,6 @@ SlicersTree Split(ElemTree *tree, char *elem)
   {
     SetParent(tree->left, NULL);
 
-
     ret.min = tree->left;
     ret.max = tree;
     tree->left = NULL;
@@ -212,7 +186,6 @@ SlicersTree Split(ElemTree *tree, char *elem)
   else if((CmpTreeElem(tree, elem) < 0))
   {
     SetParent(tree->right, NULL);
-
 
     ret.max = tree->right;
     ret.min = tree;
@@ -259,9 +232,9 @@ ElemTree *Remove(ElemTree *head, char *elem)
 
 int main()
 {
-  char str_f[100000][600] = {};
-  char str_s[100000][600] = {};
-  char quest[100000][600] = {};
+  char str_f[INIT_X][INIT_Y] = {};
+  char str_s[INIT_X][INIT_Y] = {};
+  char quest[INIT_X][INIT_Y] = {};
   int AmountCom = 0, val = 0, may = 0;
   scanf("%d", &AmountCom);
 
@@ -291,7 +264,5 @@ int main()
     head_f =  FindMinEl(head_f, quest[i]);
 
     if(CmpTreeElem(head_f, quest[i]) == 0) printf("%s\n", head_f->val_s);
-
   }
-
 }
