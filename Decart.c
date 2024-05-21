@@ -236,6 +236,8 @@ int main()
   int a = 1;
   int val = 0, may = 0;
   ElemTree *arr = (ElemTree *)calloc(200000, sizeof(ElemTree));
+  if(arr == NULL)  return -1;
+  
   ElemTree *head = NULL, *ret;
   srand(time(NULL));
   int cnt = 0;
