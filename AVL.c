@@ -3,15 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define PowerUniverse 2147483647
-#define MAX_RAND 1000000000
-#define MAX_SIZE_TABLE 10000000
-#define MAX_SIZE_CONSTS 3
 #define MAX(a, b) \
   (a > b ? a : b)
-#define MAX_SIZE_COM 3
-#define LOG(args...) \
-       //   fprintf(stderr, args)
 
 extern struct ElemTree;
 
@@ -19,18 +12,17 @@ typedef long long int ElemToUse;
 
 typedef struct
 {
-    struct ElemTree *prev;
-    long long int val;
-    long long int deep;
-    long long int delta;
-    struct ElemTree* right;
-    struct ElemTree* left;
-}ElemTree;
+  struct ElemTree *prev;
+  long long int val;
+  long long int deep;
+  long long int delta;
+  struct ElemTree* right;
+  struct ElemTree* left;
+} ElemTree;
 
 typedef struct{
-    ElemTree *head;
-
-}AvlTree;
+  ElemTree *head;
+} AvlTree;
 
 ElemTree *FindPlaceInTree(ElemTree *CurEl, long long int val)
 {
@@ -40,12 +32,10 @@ ElemTree *FindPlaceInTree(ElemTree *CurEl, long long int val)
   }
   else if(val >= CurEl->val)
   {
-    if(CurEl->right == NULL)  return CurEl;
-    return FindPlaceInTree(CurEl->right, val);
+    return (CurEl->right == NULL) ? CurEl : FindPlaceInTree(CurEl->right, val);
   }
-  else{
-    if(CurEl->left == NULL)  return CurEl;
-    return FindPlaceInTree(CurEl->left, val);
+  else {
+    return (CurEl->left == NULL) ? CurEl : FindPlaceInTree(CurEl->left, val);
   }
 }
 
@@ -96,25 +86,17 @@ void RightRotate(ElemTree *head)
   ElemTree *to_rotate = head->right;
   ElemTree *prev_head = head->prev;
   ElemTree *to_change = NULL;
+  
   if(to_rotate != NULL )    to_change = to_rotate->left;
-
 
   if(head->prev != NULL)
   {
-    if (prev_head->left == head)
-    {
-      prev_head->left = to_rotate;
-    }
-    else
-    {
-      prev_head->right = to_rotate;
-    }
+    (prev_head->left == head) ? (prev_head->left = to_rotate) : (prev_head->right = to_rotate);
   }
 
   to_rotate->prev = prev_head;
   to_rotate->left  = head;
   head->prev = to_rotate;
-
 
   if(to_change != NULL)   to_change->prev = head;
   head->right = to_change;
@@ -128,24 +110,17 @@ void LeftRotate(ElemTree *head)
   ElemTree *to_rotate = head->left;
   ElemTree *prev_head = head->prev;
   ElemTree *to_change = NULL;
+  
   if(to_rotate != NULL )    to_change = to_rotate->right;
 
   if(head->prev != NULL)
   {
-    if (prev_head->left == head)
-    {
-      prev_head->left = to_rotate;
-    }
-    else
-    {
-      prev_head->right = to_rotate;
-    }
+    (prev_head->left == head) ? (prev_head->left = to_rotate) : (prev_head->right = to_rotate);
   }
 
   to_rotate->prev = prev_head;
   to_rotate->right  = head;
   head->prev = to_rotate;
-
 
   if(to_change != NULL)   to_change->prev = head;
   head->left = to_change;
@@ -161,7 +136,6 @@ void LeftBigRotate(ElemTree *head) {
 
 void RightBigRotate(ElemTree *head) {
   LeftRotate(head->right);
-
   RightRotate(head);
 }
 
@@ -179,19 +153,13 @@ ElemTree *UpdateDeepTree(ElemTree *ElemToUpd)
       may = to_rotate->right;
       k   = to_rotate->left;
 
-      if(may == NULL) deep_may = 0;
-      else            deep_may = may->deep;
-
-      if(k == NULL) deep_k = 0;
-      else            deep_k = k->deep;
-
-      LOG("BID_ROT_CHECK %d %d \n", deep_may, deep_k);
+      deep_may  = (may == NULL) ? 0 : may->deep;
+      deep_k    = (k == NULL) ? 0 : k->deep;
 
       if(deep_may > deep_k)
       {
         LeftBigRotate(ElemToUpd);
-        if(ElemToUpd->prev != NULL)   return UpdateDeepTree(ElemToUpd->prev);
-        else  return ElemToUpd;
+        return (ElemToUpd->prev != NULL) ? UpdateDeepTree(ElemToUpd->prev) : ElemToUpd;
       }
     }
     LeftRotate(ElemToUpd);
@@ -205,28 +173,20 @@ ElemTree *UpdateDeepTree(ElemTree *ElemToUpd)
       may = to_rotate->right;
       k   = to_rotate->left;
 
-      if(may == NULL) deep_may = 0;
-      else            deep_may = may->deep;
-
-      if(k == NULL) deep_k = 0;
-      else            deep_k = k->deep;
-
-      LOG("BID_ROT_CHECK %d %d \n", deep_may, deep_k);
+      deep_may  = (may == NULL) ? 0 : may->deep;
+      deep_k    = (k == NULL) ? 0 : k->deep;
 
       if(deep_may < deep_k)
       {
         RightBigRotate(ElemToUpd);
-        if(ElemToUpd->prev != NULL)   return UpdateDeepTree(ElemToUpd->prev);
-        else  return ElemToUpd;
+        return (ElemToUpd->prev != NULL) ? UpdateDeepTree(ElemToUpd->prev) : ElemToUpd;
       }
     }
     RightRotate(ElemToUpd);
     SetHigh(ElemToUpd);
   }
-  LOG("UpdateDeepTree cur_el = %d deep = %d delta_deep = %d]\n", ElemToUpd->val, ElemToUpd->deep, ElemToUpd->delta);
 
-  if(ElemToUpd->prev != NULL)   return UpdateDeepTree(ElemToUpd->prev);
-  else  return ElemToUpd;
+  return (ElemToUpd->prev != NULL) ? UpdateDeepTree(ElemToUpd->prev) : ElemToUpd;
 }
 
 void Insert(AvlTree *tree, ElemTree *ElemToIns)
@@ -246,17 +206,16 @@ void Insert(AvlTree *tree, ElemTree *ElemToIns)
   else if(ElemToIns->val >= ptr->val)
   {
     ptr->right = ElemToIns;
-
   }
   else
   {
     ptr->left = ElemToIns;
   }
+  
   ElemToIns->prev = ptr;
   ElemToIns->deep = 1;
   tree->head = UpdateDeepTree(ElemToIns->prev);
   ElemTree  *prev = ElemToIns->prev;
-  LOG("Insert after %d HEAD = %d \n", prev->val, tree->head->val);
 }
 
 
