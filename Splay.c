@@ -81,7 +81,7 @@ void RightRotate(ElemTree *head)
   head->left = to_change;
 }
 
-ElemTree *Zig(ElemTree *root_to_zig)
+ElemTree *BalanceTree(ElemTree *root_to_zig)
 {
   ElemTree *father      = GetParent(root_to_zig);
   ElemTree *grandfather = GetParent(father);
@@ -133,7 +133,7 @@ ElemTree *Splay(ElemTree *elem)
 {
   while(elem->prev != NULL)
   {
-    Zig(elem);
+    BalanceTree(elem);
   }
   return elem;
 }
