@@ -50,6 +50,11 @@ enum TYPE_LAYERS
   MAX_LAYER = 0
 };
 
+enum CODE_ERRORS{
+  ALL_GOOD = 1,
+  NO_MEM = -1
+};
+
 enum TYPE_LAYERS def_type_layer(int index)
 {
   int amount  = 1;
@@ -356,11 +361,13 @@ int extractMax(BinHeap *heap)
   return val_for_ret;
 }
 
-void init_BinHeap(BinHeap *heap, int size)
+enum CODE_ERRORS init_BinHeap(BinHeap *heap, int size)
 {
   int amount = 1;
   int counter = 0;
-  heap->arr = (Elem_heap *)calloc(size, sizeof(Elem_heap));
+  heap->arr_heap = (Elem_heap *)calloc(size, sizeof(Elem_heap));
+  if(heap->arr_heap == NULL)  return NO_MEM;
+
   for(int i = 0; i < size; i++)
   {
     if(i >= (amount - 1))
@@ -380,8 +387,10 @@ int main()
   scanf("%d", &amount_op);
 
   BinHeap heap;
-    
-  init_BinHeap(&heap, MAX_SIZE_ARR);
+
+
+  enum CODE_ERRORS code_ret = init_BinHeap(&heap, MAX_SIZE_ARR);
+  if(code_ret == NO_MEM)  printf("NO_MEM");
 
   for(int i = 0; i < amount_op; i++)
   {
