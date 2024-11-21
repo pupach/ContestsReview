@@ -1,24 +1,13 @@
 #include<iostream>
 #include<vector>
-#include<bits/stdc++.h>
-
-
-#include <stdint.h>
-#include <stdlib.h>
-
-#include <algorithm>
-#include <cmath>
-#include <cstdlib>
-#include <iostream>
-#include <vector>
 
 
 struct Matrix {
-  int m_size;
+  size_t m_size;
   long long mod;
   std::vector <std::vector<long long>> data;
 
-  Matrix() = default;
+  Matrix(int len_a = 0, int len_b = 0, long long mod = 0) : data(len_a, std::vector<long long>(len_b, 0)), mod(mod) {}
 
   Matrix operator*(Matrix matrix) {
     Matrix new_matrix = *this;
@@ -33,8 +22,8 @@ struct Matrix {
     return new_matrix;
   }
 
-  Matrix MatrixDegreeInt(int degree) {
-    if(degree == 0){
+  Matrix MatrixPowerInt(int power) {
+    if(power == 0){
       Matrix res = *this;
       for (int i = 0; i < res.data.size(); i++) {
         for (int j = 0; j < res.data.size(); j++) {
@@ -44,54 +33,53 @@ struct Matrix {
       return res;
     }
 
-    if(degree == 1) return *this;
+    if(power == 1) return *this;
 
-    if(degree % 2 == 0){
-      degree /= 2;
-      Matrix matrix = MatrixDegreeInt(degree);
+    if(power % 2 == 0){
+      power /= 2;
+      Matrix matrix = MatrixPowerInt(power);
       return (matrix * matrix);
     }
     else{
-      return (*this * MatrixDegreeInt(degree - 1));
+      return (*this * MatrixPowerInt(power - 1));
     }
   }
 
-  Matrix MatrixDegree2(std::string& degree){
-    if(degree.size() == 0) return MatrixDegreeInt(0);
-    if(degree.size() == 1){
-      char meows = degree.back();
-      degree.pop_back();
-      int deg = meows - '0';
-      return MatrixDegreeInt(deg);
+  Matrix Matrixpower2(std::string& power){
+    if(power.size() == 0) return MatrixPowerInt(0);
+    
+    if(power.size() == 1){
+      char numb = power.back();
+      power.pop_back();
+      int deg = numb - '0';
+      return MatrixPowerInt(deg);
     }
-    char meows = degree.back();
-    degree.pop_back();
-    int deg = meows - '0';
+    char numb = power.back();
+    power.pop_back();
+    int deg = numb - '0';
 
-    Matrix res_matrix = MatrixDegree2(degree);
-    res_matrix = res_matrix.MatrixDegreeInt(10);
-    Matrix res_matrix2 = MatrixDegreeInt(deg);
+    Matrix res_matrix = Matrixpower2(power);
+    res_matrix = res_matrix.MatrixPowerInt(10);
+    Matrix res_matrix2 = MatrixPowerInt(deg);
     return (res_matrix * res_matrix2);
+  }
+
+  int MakeSumByMod(long long int max_dp){
+    int sum = 0;
+    for(int i = 0; i < max_dp; i++){
+      for(int j = 0; j < max_dp; j++) {
+        sum += data[i][j];
+        sum %= mod;
+      }
+    }
+    return sum;
   }
 };
 
 
-
-
-int main(){
-  int n, n1, m1, mod;
-  std::string m;
-  std::cin >> m;
-  std::cin >> n;
-  std::cin >> mod;
-
-  long long int max_dp = (1 << n);
-  std::vector<std::vector<long long>> matrix(max_dp, std::vector<long long>(max_dp, 0));
-  std::vector<std::vector<long long>> ed(max_dp, std::vector<long long>(max_dp, 0));
-
+void FillTransitionalMatrix(Matrix& transition_matrix, long long int max_dp, int n){
   for(int i = 0; i < max_dp; i++) {
     for(int j = 0; j < max_dp; j++) {
-      if(i == j)  ed[i][j] = 1;
       int first  = i;
       int second = j;
       int pred_flag = -1;
@@ -115,14 +103,13 @@ int main(){
         first  = first  >> 1;
       }
       if(meow){
-        matrix[i][j] = 1;
+        transition_matrix.data[i][j] = 1;
       }
     }
   }
-  Matrix res;
-  res.mod = mod;
-  res.data = matrix;
+}
 
+void ParseString(std::string& m){
   int me = m.size() - 1;
   while(m[me] == '0'){
     me--;
@@ -131,13 +118,24 @@ int main(){
   for(int i = me + 1; i < m.size(); i++){
     m[i] = '9';
   }
-  res = res.MatrixDegree2(m);
-  int sum = 0;
-  for(int i = 0; i < max_dp; i++){
-    for(int j = 0; j < max_dp; j++) {
-      sum += res.data[i][j];
-      sum %= mod;
-    }
-  }
+}
+
+int main(){
+  int n, mod;
+  std::string m;
+  std::cin >> m;
+  std::cin >> n;
+  std::cin >> mod;
+
+  long long int max_dp = (1 << n);
+  Matrix transition_matrix(max_dp, max_dp, mod);
+  Matrix ed_matrix        (max_dp, max_dp, mod);
+  std::vector<std::vector<long long>> matrix(max_dp, std::vector<long long>(max_dp, 0));
+
+  FillTransitionalMatrix(transition_matrix, max_dp, n);
+  ParseString(m);
+  transition_matrix = transition_matrix.Matrixpower2(m);
+  int sum = transition_matrix.MakeSumByMod(max_dp);
+
   std::cout << sum;
 }
