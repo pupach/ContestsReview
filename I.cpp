@@ -2,8 +2,8 @@
 #include<vector>
 
 
-struct Matrix {
-  size_t m_size;
+class Matrix {
+ public:
   long long mod;
   std::vector <std::vector<long long>> data;
 
@@ -22,7 +22,7 @@ struct Matrix {
     return new_matrix;
   }
 
-  Matrix MatrixPowerInt(int power) {
+  Matrix MatrixPower(int power) {
     if(power == 0){
       Matrix res = *this;
       for (int i = 0; i < res.data.size(); i++) {
@@ -37,30 +37,30 @@ struct Matrix {
 
     if(power % 2 == 0){
       power /= 2;
-      Matrix matrix = MatrixPowerInt(power);
+      Matrix matrix = MatrixPower(power);
       return (matrix * matrix);
     }
     else{
-      return (*this * MatrixPowerInt(power - 1));
+      return (*this * MatrixPower(power - 1));
     }
   }
 
   Matrix Matrixpower2(std::string& power){
-    if(power.size() == 0) return MatrixPowerInt(0);
-    
+    if(power.size() == 0) return MatrixPower(0);
+
     if(power.size() == 1){
       char numb = power.back();
       power.pop_back();
       int deg = numb - '0';
-      return MatrixPowerInt(deg);
+      return MatrixPower(deg);
     }
     char numb = power.back();
     power.pop_back();
     int deg = numb - '0';
 
     Matrix res_matrix = Matrixpower2(power);
-    res_matrix = res_matrix.MatrixPowerInt(10);
-    Matrix res_matrix2 = MatrixPowerInt(deg);
+    res_matrix = res_matrix.MatrixPower(10);
+    Matrix res_matrix2 = MatrixPower(deg);
     return (res_matrix * res_matrix2);
   }
 
@@ -84,12 +84,12 @@ void FillTransitionalMatrix(Matrix& transition_matrix, long long int max_dp, int
       int second = j;
       int pred_flag = -1;
       int cur_flag ;
-      bool meow = true;
-      for(int sdvig = 0; sdvig < n; sdvig++){
+      bool flag = true;
+      for(int shift = 0; shift < n; shift++){
         if((first & 1) == (second & 1)) {
           cur_flag = first & 1;
           if(cur_flag == pred_flag) {
-            meow = false;
+            flag = false;
             break;
           }
           else {
@@ -102,7 +102,7 @@ void FillTransitionalMatrix(Matrix& transition_matrix, long long int max_dp, int
         second = second >> 1;
         first  = first  >> 1;
       }
-      if(meow){
+      if(flag){
         transition_matrix.data[i][j] = 1;
       }
     }
