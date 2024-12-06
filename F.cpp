@@ -3,6 +3,7 @@
 #include<stack>
 #include<set>
 
+const int MAX_TWO_DEGREE = 22;
 
 struct Top {
   int color = 0;
@@ -22,7 +23,7 @@ struct Top {
 
 
 class Graph{
- public:
+
   std::vector<Top> tops;
   int count_top;
   int count_edg;
@@ -30,7 +31,6 @@ class Graph{
   int deep = 0;
   int ans  = 0;
   int *cnt;
-  bool cycles = false;
   std::vector<std::pair<int, int>> edg = {};
   std::vector<bool> is_bridges = {};
   std::vector<std::set<int>> top_bridges = {};
@@ -39,23 +39,32 @@ class Graph{
   std::vector<int> arr_deep = {};
   std::vector<int> arr_deep_bridges = {};
   std::vector<std::vector<int>> dp = {};
-  Graph* meow;
   Graph* ToBuild;
+
+   public:
+    Graph* GraphDp;
 
   Graph(int n, int m=0) : count_top(n), arr_deep_bridges(n), arr_in(n, 0), arr_out(n, 0), arr_deep(n, 0), dp(n, std::vector(21, 0)), count_edg(m), tops(n), is_bridges(m, false), top_bridges(n, std::set<int>()) {}
 
+  void AddEdge(int top, int second_top, int numb){
+    edg.push_back({top, second_top});
+
+    tops[top].edges_to.push_back({second_top, numb});
+    tops[second_top].edges_to.push_back({top, numb});
+  }
+
   void GrapCinMatrix(int m = -1) {
-    int f, s;
+    int first_top, second_top;
     if (m != -1) count_edg = m;
     for (int i = 0; i < count_edg; i++) {
-      std::cin >> f >> s;
-      edg.push_back({f - 1, s - 1});
-
-      tops[f - 1].edges_to.push_back({s - 1, i});
-      tops[s - 1].edges_to.push_back({f - 1, i});
+      std::cin >> first_top >> second_top;
+      AddEdge(first_top - 1, second_top - 1, i);
     }
   }
 
+  int GetAns(){
+    return ans;
+  }
   void FellWhite(){
     for(int i = 0; i < count_top; i++) {
       tops[i].color = 0;
@@ -123,26 +132,26 @@ class Graph{
   }
 
   void Fill_dp(int main){
-    if(meow->tops[main].parent == -1) meow->tops[main].parent = main;
-    meow->arr_in[main] = meow->time++;
-    meow->arr_deep[main] = meow->deep++;
+    if(GraphDp->tops[main].parent == -1) GraphDp->tops[main].parent = main;
+    GraphDp->arr_in[main] = GraphDp->time++;
+    GraphDp->arr_deep[main] = GraphDp->deep++;
 
     tops[main].color = 1;
     for (int i = 0; i < tops[main].edges_to.size(); i++) {
       if(tops[tops[main].edges_to[i].first].color == 0){
-        meow->tops[main].edges_to.push_back({tops[main].edges_to[i].first, -1});
-        meow->tops[tops[main].edges_to[i].first].edges_to.push_back({main, -1});
-        meow->arr_deep_bridges[tops[main].edges_to[i].first] = meow->arr_deep_bridges[main];
+        GraphDp->tops[main].edges_to.push_back({tops[main].edges_to[i].first, -1});
+        GraphDp->tops[tops[main].edges_to[i].first].edges_to.push_back({main, -1});
+        GraphDp->arr_deep_bridges[tops[main].edges_to[i].first] = GraphDp->arr_deep_bridges[main];
         if(is_bridges[tops[main].edges_to[i].second]){
-          meow->arr_deep_bridges[tops[main].edges_to[i].first]++;
+          GraphDp->arr_deep_bridges[tops[main].edges_to[i].first]++;
         }
-        meow->tops[tops[main].edges_to[i].first].parent = main;
+        GraphDp->tops[tops[main].edges_to[i].first].parent = main;
         Fill_dp(tops[main].edges_to[i].first);
       }
     }
     tops[main].color = 2;
-    meow->deep--;
-    meow->arr_out[main] = meow->time++;
+    GraphDp->deep--;
+    GraphDp->arr_out[main] = GraphDp->time++;
 
     return;
   }
@@ -154,7 +163,7 @@ class Graph{
   }
 
   void Fill_dp(){
-    for(int i = 0; i < 22; i++){
+    for(int i = 0; i < MAX_TWO_DEGREE; i++){
       for(int j = 0; j < count_top; j++){
         if(i == 0){
           dp[j][i] = tops[j].parent;
@@ -172,7 +181,7 @@ class Graph{
 
     int cur_top = x;
 
-    for(int i = 20; i > -1; i--){
+    for(int i = MAX_TWO_DEGREE; i >= 0; i--){
         if ((!IsLeader(dp[cur_top][i], y)) && (IsLeader(dp[cur_top][i + 1], y))) {
           cur_top = dp[cur_top][i];
         }
@@ -181,14 +190,15 @@ class Graph{
   }
 };
 
+
 int main(){
   std::ios_base::sync_with_stdio(false);
   std::cin.tie(nullptr);
-  int n, m, main, ans_size;
+  int n, m, f , ans_size;
   std::cin >> n >> m;
 
   Graph graph(n, m);
-  std::cin >> main;
+  std::cin >> f ;
 
   graph.GrapCinMatrix(m);
 
@@ -197,11 +207,11 @@ int main(){
 
   graph.FellWhite();
 
-  Graph meow(n, graph.ans);
+  Graph GraphDp(n, graph.GetAns());
 
-  graph.meow = &meow;
-  graph.Fill_dp(main - 1);
-  meow.Fill_dp();
+  graph.GraphDp = &GraphDp;
+  graph.Fill_dp(f - 1);
+  GraphDp.Fill_dp();
 
 
 
@@ -212,11 +222,8 @@ int main(){
 
   for(int i = 0; i < ans_size; i++){
     std::cin >> n >> m;
-    deep[i] = meow.LSA_with_distance(n - 1, m - 1);
-    //std::cout << ans[i] << '\n';
+    deep[i] = GraphDp.LSA_with_distance(n - 1, m - 1);
   }
-
-
 
   for(int i = 0; i < deep.size(); i++){
     std::cout << deep[i] << '\n';
