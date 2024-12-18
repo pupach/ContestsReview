@@ -6,14 +6,18 @@
 const int MAX_TWO_DEGREE = 22;
 
 struct Top {
+  struct Edge{
+    int numb;
+    int where;
+  };
   int color = 0;
   int t_in  = 0;
   int parent = -1;
-  std::vector<std::pair<int, int>> edges_to = {};
+  std::vector<Edge> edges_to = {};
 
-  bool IsEdgVector(int numb){
-    for(int i = 0; i < edges_to.size(); i++){
-      if(edges_to[i].first == numb){
+  bool IsEdgVector(int number){
+    for(std::size_t i = 0; i < edges_to.size(); i++){
+      if(edges_to[i].where == number){
         return true;
       }
     }
@@ -21,30 +25,43 @@ struct Top {
   }
 };
 
+struct GraphWay {
+ private:
+
+};
+
 
 class Graph{
 
+ private:
   std::vector<Top> tops;
   int count_top;
   int count_edg;
   int time = 0;
   int deep = 0;
   int ans  = 0;
-  int *cnt;
   std::vector<std::pair<int, int>> edg = {};
   std::vector<bool> is_bridges = {};
-  std::vector<std::set<int>> top_bridges = {};
   std::vector<int> arr_in  = {};
   std::vector<int> arr_out = {};
   std::vector<int> arr_deep = {};
   std::vector<int> arr_deep_bridges = {};
-  std::vector<std::vector<int>> dp = {};
-  Graph* ToBuild;
+  std::vector<std::vector<int>>  dp = {};
 
-   public:
-    Graph* GraphDp;
+ public:
+  Graph* GraphDp;
 
-  Graph(int n, int m=0) : count_top(n), arr_deep_bridges(n), arr_in(n, 0), arr_out(n, 0), arr_deep(n, 0), dp(n, std::vector(21, 0)), count_edg(m), tops(n), is_bridges(m, false), top_bridges(n, std::set<int>()) {}
+  static Graph ReadGraph(int n, int m){
+    Graph to_ret(n, m);
+    int first_top, second_top;
+    for (int i = 0; i < to_ret.count_edg; i++) {
+      std::cin >> first_top >> second_top;
+      to_ret.AddEdge(first_top - 1, second_top - 1, i);
+    }
+    return to_ret;
+  }
+
+  Graph(int n, int m=0) : count_top(n), arr_deep_bridges(n), arr_in(n, 0), arr_out(n, 0), arr_deep(n, 0), dp(n, std::vector(MAX_TWO_DEGREE - 1, 0)), count_edg(m), tops(n), is_bridges(m, false) {}
 
   void AddEdge(int top, int second_top, int numb){
     edg.push_back({top, second_top});
@@ -54,33 +71,28 @@ class Graph{
   }
 
   void GrapCinMatrix(int m = -1) {
-    int first_top, second_top;
-    if (m != -1) count_edg = m;
-    for (int i = 0; i < count_edg; i++) {
-      std::cin >> first_top >> second_top;
-      AddEdge(first_top - 1, second_top - 1, i);
-    }
+
   }
 
   int GetAns(){
     return ans;
   }
-  void FellWhite(){
+  void FillWhite(){
     for(int i = 0; i < count_top; i++) {
       tops[i].color = 0;
     }
   }
 
-  int DFSToBuildTree(int cur_top) {
-    tops[cur_top].color = 1;
-    auto meow = tops[cur_top].edges_to.begin();;
-    for(int i = 0; i < tops[cur_top].edges_to.size(); i++, meow++){
-      if(tops[(*meow).first].color == 0){
-        ToBuild->tops[cur_top].edges_to.push_back(*meow);
+  int DFSTBuildTreeFromGraph(int cur_top, Graph& graph) {
+    graph.tops[cur_top].color = 1;
+    auto meow = graph.tops[cur_top].edges_to.begin();;
+    for(int i = 0; i < graph.tops[cur_top].edges_to.size(); i++, meow++){
+      if(graph.tops[(*meow).first].color == 0){
+        tops[cur_top].edges_to.push_back(*meow);
         DFSToBuildTree((*meow).first);
       }
     }
-    tops[cur_top].color = 2;
+    graph.tops[cur_top].color = 2;
     return 0;
   }
 
@@ -106,12 +118,11 @@ class Graph{
   }
   void FindBridges(){
     Graph to_ret(count_top);
-    ToBuild = &to_ret;
-    DFSToBuildTree(0);
+    to_ret.DFSTBuildTreeFromGraph(0, *this);
     int cnt = 1;
     this->cnt = &cnt;
 
-    FellWhite();
+    FillWhite();
 
     DFSSetToIn(0,  -1);
 
@@ -197,7 +208,7 @@ int main(){
   int n, m, f , ans_size;
   std::cin >> n >> m;
 
-  Graph graph(n, m);
+  Graph graph = Graph::ReadGraph(n, m);
   std::cin >> f ;
 
   graph.GrapCinMatrix(m);
@@ -205,7 +216,7 @@ int main(){
 
   graph.FindBridges();
 
-  graph.FellWhite();
+  graph.FillWhite();
 
   Graph GraphDp(n, graph.GetAns());
 
