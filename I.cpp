@@ -29,7 +29,7 @@ std::vector<std::array<int, 2>> CompressionCoor(std::vector<std::array<long long
   for(int i = 0; i < orig_arr.size(); i++)
   {
     size_t new_val = bin_search(sort_arr, orig_arr[i][1], 0, sort_arr.size());
-    compr_arr[i][1] = (int)new_val;
+    compr_arr[i][1] = static_cast<int>(new_val);
     compr_arr[i][0] = i;
   }
   return compr_arr;
@@ -57,6 +57,28 @@ class TreeSeg{
   int right_val_get_sum(int l, int r, int v, int tl, int tr);
   int left_val_find(int elem, int cur_v);
   int right_val_find(int elem, int cur_v);
+  void FillTree();
+};
+
+void FillTree() {
+  std::vector<std::array<int, 2>> compr_vect = CompressionCoor(init_vector, set_sort_vect);
+
+  for (int i = 0; i < n; i++)
+  {
+    int ind_sum = tree_seg.right_val_get_sum(0, compr_vect[i][1] - 1, 0, (c / 2) - 1, 0);
+    if ((ind_sum != -1) && (tree_seg.tree[ind_sum].r_value != 0)) tree_seg.r_parent[i] = tree_seg.tree[ind_sum].r_parent;
+
+    int sum_to_up = 0;
+    if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].r_value;
+    tree_seg.left_val_update(sum_to_up + 1, c / 2 - 1 + compr_vect[i][1], i);
+
+    ind_sum = tree_seg.left_val_get_sum(compr_vect[i][1] + 1, (c / 2) - 1, 0, (c / 2) - 1, 0);
+    if ((ind_sum != -1) && (tree_seg.tree[ind_sum].l_value != 0)) tree_seg.l_parent[i] = tree_seg.tree[ind_sum].l_parent;
+
+    sum_to_up = 0;
+    if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].l_value;
+    tree_seg.right_val_update(sum_to_up + 1, c / 2 - 1 + compr_vect[i][1], i);
+  }
 };
 
 void TreeSeg::left_val_update(int val, int ind_to_update, int who) {
@@ -128,15 +150,15 @@ int TreeSeg::left_val_get_sum(int left, int right, int cur_l, int cur_r, int cur
     return -1;
   }
 
-  int tm = (cur_l + cur_r) / 2;
+  int middle = (cur_l + cur_r) / 2;
   int second, first;
 
-  int f = left_val_get_sum(left, right, cur_l, tm, cur_v * 2 + 1);
+  int f = left_val_get_sum(left, right, cur_l, middle, cur_v * 2 + 1);
 
   if(f == -1) first = 0;
   else first = left_val_find(tree[f].l_value, f);
 
-  int s = left_val_get_sum(left, right,tm + 1, cur_r, cur_v * 2 + 2);
+  int s = left_val_get_sum(left, right,middle + 1, cur_r, cur_v * 2 + 2);
   if(s == -1) second = 0;
   else second = left_val_find(tree[s].l_value, s);
 
@@ -158,15 +180,15 @@ int TreeSeg::right_val_get_sum(int left, int right, int cur_l, int cur_r, int cu
     return -1;
   }
 
-  int tm = (cur_l + cur_r) / 2;
+  int middle = (cur_l + cur_r) / 2;
   int second, first;
 
-  int f = right_val_get_sum(left, right, cur_l, tm, cur_v * 2 + 1);
+  int f = right_val_get_sum(left, right, cur_l, middle, cur_v * 2 + 1);
 
   if(f == -1) first = 0;
   else first = right_val_find(tree[f].r_value, f);
 
-  int s = right_val_get_sum(left, right,tm + 1, cur_r, cur_v * 2 + 2);
+  int s = right_val_get_sum(left, right,middle + 1, cur_r, cur_v * 2 + 2);
   if(s == -1) second = 0;
   else second = right_val_find(tree[s].r_value, s);
   if(f == -1) return second;
@@ -195,6 +217,17 @@ void FindRightWay(std::vector<int>& way, TreeSeg& tree_seg, int mod_2)
     mod_2++;
   }
 }
+
+int LogarifmTwo(int number)
+{
+  int c = 1;
+  while(c < number)
+  {
+    c *= 2;
+  }
+  return c;
+}
+
 int main(){
   int n = 0;
   std::cin >> n;
@@ -221,35 +254,16 @@ int main(){
       set_sort_vect.push_back(vector_helper[i]);
     }
   }
-  int c = 1;
-  while(c < 2 * set_sort_vect.size() - 1)
-  {
-    c *= 2;
-  }
+  int c = LogarifmTwo(2 * set_sort_vect.size() - 1);
+
   TreeSeg tree_seg(n, c - 1);
+
   if(c == 1) {
     std::cout << 1 << '\n';
     std::cout << init_vector[0][1];
   }
   else{
-    std::vector<std::array<int, 2>> compr_vect = CompressionCoor(init_vector, set_sort_vect);
-
-    for (int i = 0; i < n; i++)
-    {
-      int ind_sum = tree_seg.right_val_get_sum(0, compr_vect[i][1] - 1, 0, (c / 2) - 1, 0);
-      if ((ind_sum != -1) && (tree_seg.tree[ind_sum].r_value != 0)) tree_seg.r_parent[i] = tree_seg.tree[ind_sum].r_parent;
-
-      int sum_to_up = 0;
-      if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].r_value;
-      tree_seg.left_val_update(sum_to_up + 1, (int) (c / 2) - 1 + compr_vect[i][1], i);
-
-      ind_sum = tree_seg.left_val_get_sum(compr_vect[i][1] + 1, (c / 2) - 1, 0, (c / 2) - 1, 0);
-      if ((ind_sum != -1) && (tree_seg.tree[ind_sum].l_value != 0)) tree_seg.l_parent[i] = tree_seg.tree[ind_sum].l_parent;
-
-      sum_to_up = 0;
-      if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].l_value;
-      tree_seg.right_val_update(sum_to_up + 1, (int) (c / 2) - 1 + compr_vect[i][1], i);
-    }
+    tree_seg.FillTree();
 
     std::cout << std::max(tree_seg.tree[0].l_value, tree_seg.tree[0].r_value)  << '\n';
 
