@@ -17,6 +17,7 @@ class Matrix {
         for (int k = 0; k < data.size(); k++)
           new_matrix.data[i][j] += (data[i][k] * matrix.data[k][j]) % mod;
         new_matrix.data[i][j] %= mod;
+        new_matrix.data[i][j] %= mod;
       }
     }
     return new_matrix;
@@ -45,20 +46,19 @@ class Matrix {
     }
   }
 
-  Matrix Matrixpower2(std::string& power){
-    if(power.size() == 0) return MatrixPower(0);
+  Matrix MatrixpowerString(const std::string& power, int first_of_end=-2){
+    if(first_of_end == -2) first_of_end = power.size();
+    if(first_of_end == -1) return MatrixPower(0);
 
-    if(power.size() == 1){
-      char numb = power.back();
-      power.pop_back();
+    if(first_of_end == 0){
+      char numb = power[first_of_end];
       int deg = numb - '0';
       return MatrixPower(deg);
     }
-    char numb = power.back();
-    power.pop_back();
+    char numb = power[first_of_end];
     int deg = numb - '0';
 
-    Matrix res_matrix = Matrixpower2(power);
+    Matrix res_matrix = MatrixpowerString(power, first_of_end - 1);
     res_matrix = res_matrix.MatrixPower(10);
     Matrix res_matrix2 = MatrixPower(deg);
     return (res_matrix * res_matrix2);
@@ -76,8 +76,14 @@ class Matrix {
   }
 };
 
+bool EqualModTwo(int isFirstEven, int isSecondEven) {
+  return ((isFirstEven % 2) == (isSecondEven % 2));
+}
 
-void FillTransitionalMatrix(Matrix& transition_matrix, long long int max_dp, int n){
+
+Matrix FillTransitionalMatrix(long long int max_dp, int n){
+  Matrix transition_matrix(max_dp, max_dp, 5);
+
   for(int i = 0; i < max_dp; i++) {
     for(int j = 0; j < max_dp; j++) {
       int first  = i;
@@ -86,7 +92,7 @@ void FillTransitionalMatrix(Matrix& transition_matrix, long long int max_dp, int
       int cur_flag ;
       bool flag = true;
       for(int shift = 0; shift < n; shift++){
-        if((first & 1) == (second & 1)) {
+        if(EqualModTwo(first, second)) {
           cur_flag = first & 1;
           if(cur_flag == pred_flag) {
             flag = false;
@@ -107,6 +113,7 @@ void FillTransitionalMatrix(Matrix& transition_matrix, long long int max_dp, int
       }
     }
   }
+  return transition_matrix;
 }
 
 void ParseString(std::string& m){
@@ -121,20 +128,20 @@ void ParseString(std::string& m){
 }
 
 int main(){
-  int n, mod;
-  std::string m;
-  std::cin >> m;
-  std::cin >> n;
+  int size, mod;
+  std::string string_power;
+  std::cin >> string_power;
+  std::cin >> size;
   std::cin >> mod;
 
-  long long int max_dp = (1 << n);
-  Matrix transition_matrix(max_dp, max_dp, mod);
+  long long int max_dp = (1 << size);
   Matrix ed_matrix        (max_dp, max_dp, mod);
   std::vector<std::vector<long long>> matrix(max_dp, std::vector<long long>(max_dp, 0));
 
-  FillTransitionalMatrix(transition_matrix, max_dp, n);
-  ParseString(m);
-  transition_matrix = transition_matrix.Matrixpower2(m);
+  Matrix transition_matrix = FillTransitionalMatrix(max_dp, size);
+  transition_matrix.mod = mod;
+  ParseString(string_power);
+  transition_matrix = transition_matrix.MatrixpowerString(string_power);
   int sum = transition_matrix.MakeSumByMod(max_dp);
 
   std::cout << sum;
