@@ -37,46 +37,49 @@ std::vector<std::array<int, 2>> CompressionCoor(std::vector<std::array<long long
 
 struct Node{
  public:
-  int l_value  = 0;
-  int r_value  = 0;
-  int l_parent = 0;
-  int r_parent = 0;
+  int left_value  = 0;
+  int right_value  = 0;
+  int left_parent = 0;
+  int right_parent = 0;
 
   Node(int n) {}
 };
 class TreeSeg{
  public:
+  std::size_t amount_gangsters;
   std::vector<Node> tree;
-  std::vector<int> r_parent;
-  std::vector<int> l_parent;
+  std::vector<int> right_parent;
+  std::vector<int> left_parent;
 
-  TreeSeg(int n, int c) : tree(c, Node(0)), r_parent(n, -1), l_parent(n, -1) {}
+
+  TreeSeg(std::size_t n, int c) : amount_gangsters(n), tree(c, Node(0)), right_parent(n, -1), left_parent(n, -1) {}
   void left_val_update(int val, int ind_to_update, int who);
   void right_val_update(int val, int ind_to_update, int who);
   int left_val_get_sum(int l, int r, int v, int tl, int tr);
   int right_val_get_sum(int l, int r, int v, int tl, int tr);
   int left_val_find(int elem, int cur_v);
   int right_val_find(int elem, int cur_v);
+  void FindRightWay(std::vector<int>& way, int mod_2);
   void FillTree();
 };
 
-void FillTree() {
-  std::vector<std::array<int, 2>> compr_vect = CompressionCoor(init_vector, set_sort_vect);
+void TreeSeg::FillTree() {
+  std::vector<std::array<int, 2>> compr_vect = CompressionCoor(init_vector, arr_sort_vect);
 
-  for (int i = 0; i < n; i++)
+  for (std::size_t i = 0; i < amount_gangsters; i++)
   {
     int ind_sum = tree_seg.right_val_get_sum(0, compr_vect[i][1] - 1, 0, (c / 2) - 1, 0);
-    if ((ind_sum != -1) && (tree_seg.tree[ind_sum].r_value != 0)) tree_seg.r_parent[i] = tree_seg.tree[ind_sum].r_parent;
+    if ((ind_sum != -1) && (tree_seg.tree[ind_sum].right_value != 0)) tree_seg.right_parent[i] = tree_seg.tree[ind_sum].right_parent;
 
     int sum_to_up = 0;
-    if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].r_value;
+    if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].right_value;
     tree_seg.left_val_update(sum_to_up + 1, c / 2 - 1 + compr_vect[i][1], i);
 
     ind_sum = tree_seg.left_val_get_sum(compr_vect[i][1] + 1, (c / 2) - 1, 0, (c / 2) - 1, 0);
-    if ((ind_sum != -1) && (tree_seg.tree[ind_sum].l_value != 0)) tree_seg.l_parent[i] = tree_seg.tree[ind_sum].l_parent;
+    if ((ind_sum != -1) && (tree_seg.tree[ind_sum].left_value != 0)) tree_seg.left_parent[i] = tree_seg.tree[ind_sum].left_parent;
 
     sum_to_up = 0;
-    if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].l_value;
+    if(ind_sum != -1) sum_to_up = tree_seg.tree[ind_sum].left_value;
     tree_seg.right_val_update(sum_to_up + 1, c / 2 - 1 + compr_vect[i][1], i);
   }
 };
@@ -84,21 +87,21 @@ void FillTree() {
 void TreeSeg::left_val_update(int val, int ind_to_update, int who) {
   if(ind_to_update < (tree.size() / 2))
   {
-    if(tree[ind_to_update * 2 + 2].l_value > tree[ind_to_update * 2 + 1].l_value)
+    if(tree[ind_to_update * 2 + 2].left_value > tree[ind_to_update * 2 + 1].left_value)
     {
-      tree[ind_to_update].l_parent = tree[ind_to_update * 2 + 2].l_parent;
-      tree[ind_to_update].l_value  = tree[ind_to_update * 2 + 2].l_value;
+      tree[ind_to_update].left_parent = tree[ind_to_update * 2 + 2].left_parent;
+      tree[ind_to_update].left_value  = tree[ind_to_update * 2 + 2].left_value;
     }
     else{
-      tree[ind_to_update].l_parent = tree[ind_to_update * 2 + 1].l_parent;
-      tree[ind_to_update].l_value  = tree[ind_to_update * 2 + 1].l_value;
+      tree[ind_to_update].left_parent = tree[ind_to_update * 2 + 1].left_parent;
+      tree[ind_to_update].left_value  = tree[ind_to_update * 2 + 1].left_value;
     }
 
   }
   else
   {
-    tree[ind_to_update].l_parent = who;
-    tree[ind_to_update].l_value = val;
+    tree[ind_to_update].left_parent = who;
+    tree[ind_to_update].left_value = val;
   }
   if(ind_to_update != 0) {left_val_update(val, (ind_to_update - 1) / 2, who);}
 }
@@ -106,21 +109,21 @@ void TreeSeg::left_val_update(int val, int ind_to_update, int who) {
 void TreeSeg::right_val_update(int val, int ind_to_update, int who) {
   if(ind_to_update < (tree.size() / 2))
   {
-    if(tree[ind_to_update * 2 + 2].r_value > tree[ind_to_update * 2 + 1].r_value)
+    if(tree[ind_to_update * 2 + 2].right_value > tree[ind_to_update * 2 + 1].right_value)
     {
-      tree[ind_to_update].r_parent = tree[ind_to_update * 2 + 2].r_parent;
-      tree[ind_to_update].r_value  = tree[ind_to_update * 2 + 2].r_value;
+      tree[ind_to_update].right_parent = tree[ind_to_update * 2 + 2].right_parent;
+      tree[ind_to_update].right_value  = tree[ind_to_update * 2 + 2].right_value;
     }
     else{
-      tree[ind_to_update].r_parent = tree[ind_to_update * 2 + 1].r_parent;
-      tree[ind_to_update].r_value  = tree[ind_to_update * 2 + 1].r_value;
+      tree[ind_to_update].right_parent = tree[ind_to_update * 2 + 1].right_parent;
+      tree[ind_to_update].right_value  = tree[ind_to_update * 2 + 1].right_value;
     }
 
   }
   else
   {
-    tree[ind_to_update].r_parent = who;
-    tree[ind_to_update].r_value = val;
+    tree[ind_to_update].right_parent = who;
+    tree[ind_to_update].right_value = val;
   }
   if(ind_to_update != 0) {right_val_update(val, (ind_to_update - 1) / 2, who);}
 }
@@ -129,14 +132,14 @@ void TreeSeg::right_val_update(int val, int ind_to_update, int who) {
 int TreeSeg::left_val_find(int elem, int cur_v)
 {
   if((tree.size() / 2 - 1) <= cur_v)    return cur_v;
-  if(tree[cur_v * 2 + 2].l_value == elem) return left_val_find(elem, cur_v * 2 + 2);
+  if(tree[cur_v * 2 + 2].left_value == elem) return left_val_find(elem, cur_v * 2 + 2);
   else                            return left_val_find(elem, cur_v * 2 + 1);
 }
 
 int TreeSeg::right_val_find(int elem, int cur_v)
 {
   if((tree.size() / 2 - 1) <= cur_v)    return cur_v;
-  if(tree[cur_v * 2 + 2].r_value == elem) return right_val_find(elem, cur_v * 2 + 2);
+  if(tree[cur_v * 2 + 2].right_value == elem) return right_val_find(elem, cur_v * 2 + 2);
   else                            return right_val_find(elem, cur_v * 2 + 1);
 }
 
@@ -144,7 +147,7 @@ int TreeSeg::left_val_get_sum(int left, int right, int cur_l, int cur_r, int cur
   if(right == -1) return -1;
   if(left > right) return -1;
   if ((left <= cur_l) && (cur_r <= right)) {
-    return left_val_find(tree[cur_v].l_value, cur_v);
+    return left_val_find(tree[cur_v].left_value, cur_v);
   }
   if ((cur_r < left) || (right < cur_l)) {
     return -1;
@@ -153,19 +156,19 @@ int TreeSeg::left_val_get_sum(int left, int right, int cur_l, int cur_r, int cur
   int middle = (cur_l + cur_r) / 2;
   int second, first;
 
-  int f = left_val_get_sum(left, right, cur_l, middle, cur_v * 2 + 1);
+  int left_sum = left_val_get_sum(left, right, cur_l, middle, cur_v * 2 + 1);
 
-  if(f == -1) first = 0;
-  else first = left_val_find(tree[f].l_value, f);
+  if(left_sum == -1) first = 0;
+  else first = left_val_find(tree[left_sum].left_value, left_sum);
 
-  int s = left_val_get_sum(left, right,middle + 1, cur_r, cur_v * 2 + 2);
-  if(s == -1) second = 0;
-  else second = left_val_find(tree[s].l_value, s);
+  int right_sum = left_val_get_sum(left, right,middle + 1, cur_r, cur_v * 2 + 2);
+  if(right_sum == -1) second = 0;
+  else second = left_val_find(tree[right_sum].left_value, right_sum);
 
-  if(f == -1) return second;
-  if(s == -1) return first;
+  if(left_sum == -1) return second;
+  if(right_sum == -1) return first;
 
-  if(tree[first].l_value >= tree[second].l_value)   return first;
+  if(tree[first].left_value >= tree[second].left_value)   return first;
   else                    return second;
 }
 
@@ -173,7 +176,7 @@ int TreeSeg::right_val_get_sum(int left, int right, int cur_l, int cur_r, int cu
   if(right == -1) return -1;
   if(left > right) return -1;
   if ((left <= cur_l) && (cur_r <= right)) {
-    return right_val_find(tree[cur_v].r_value, cur_v);
+    return right_val_find(tree[cur_v].right_value, cur_v);
   }
 
   if ((cur_r < left) || (right < cur_l)) {
@@ -183,36 +186,36 @@ int TreeSeg::right_val_get_sum(int left, int right, int cur_l, int cur_r, int cu
   int middle = (cur_l + cur_r) / 2;
   int second, first;
 
-  int f = right_val_get_sum(left, right, cur_l, middle, cur_v * 2 + 1);
+  int left_sum = right_val_get_sum(left, right, cur_l, middle, cur_v * 2 + 1);
 
-  if(f == -1) first = 0;
-  else first = right_val_find(tree[f].r_value, f);
+  if(left_sum == -1) first = 0;
+  else first = right_val_find(tree[left_sum].right_value, left_sum);
 
-  int s = right_val_get_sum(left, right,middle + 1, cur_r, cur_v * 2 + 2);
-  if(s == -1) second = 0;
-  else second = right_val_find(tree[s].r_value, s);
-  if(f == -1) return second;
-  if(s == -1) return first;
+  int right_sum = right_val_get_sum(left, right,middle + 1, cur_r, cur_v * 2 + 2);
+  if(right_sum == -1) second = 0;
+  else second = right_val_find(tree[right_sum].right_value, right_sum);
+  if(left_sum == -1) return second;
+  if(right_sum == -1) return first;
 
-  if(tree[first].r_value >= tree[second].r_value)   return first;
-  else                    return second;
+  if(tree[first].right_value >= tree[second].right_value)   return first;
+  return second;
 }
 
-void FindRightWay(std::vector<int>& way, TreeSeg& tree_seg, int mod_2)
+void TreeSeg::FindRightWay(std::vector<int>& way, int mod_2)
 {
   int ind_max = -1;
-  if(mod_2 == 0) ind_max = tree_seg.tree[0].r_parent;
-  else ind_max = tree_seg.tree[0].l_parent;
+  if(mod_2 == 0) ind_max = tree[0].right_parent;
+  else ind_max = tree[0].left_parent;
 
   int ptr_way = way.size() - 1;
   while (ind_max != -1) {
     way[ptr_way] = ind_max;
     ptr_way--;
     if((mod_2 % 2) == 0) {
-      ind_max = tree_seg.l_parent[ind_max];
+      ind_max = left_parent[ind_max];
     }
     else{
-      ind_max = tree_seg.r_parent[ind_max];
+      ind_max = right_parent[ind_max];
     }
     mod_2++;
   }
@@ -228,33 +231,42 @@ int LogarifmTwo(int number)
   return c;
 }
 
-int main(){
-  int n = 0;
-  std::cin >> n;
-  std::vector<std::array<long long int, NUMB_ELEM>> vector_helper(n);
-  std::vector<std::array<long long int, NUMB_ELEM>> set_sort_vect;
-  std::vector<std::array<long long int, NUMB_ELEM>> init_vector;
+void OutputInCout(const vect_of_arr& init_vector, const std::vector<int>& way, int range) {
+  std::cout << init_vector[way[0]][1] << ' ';
+  for (int i = 1; i < range; i++) {
+    std::cout << init_vector[way[i]][1] << ' ';
+    assert(way[i] != 0);
+  }
+}
 
-  for(int i = 0; i < n; i++)
+int main(){
+  std::size_t n = 0;
+  std::cin >> n;
+  using vect_of_arr = std::vector<std::array<long long int, NUMB_ELEM>>;
+  vect_of_arr vector_helper(n);
+  vect_of_arr arr_sort_vect;
+  vect_of_arr init_vector;
+
+  for(std::size_t i = 0; i < n; i++)
   {
     std::cin >> vector_helper[i][1];
     vector_helper[i][0] = i;
   }
   init_vector = vector_helper;
-  std::sort(vector_helper.begin(), vector_helper.end(), [](std::array<long long int, NUMB_ELEM> f, std::array<long long int, NUMB_ELEM>s)-> int
+  std::sort(vector_helper.begin(), vector_helper.end(), [](std::array<long long int, NUMB_ELEM> left_sum, std::array<long long int, NUMB_ELEM>right_sum)-> int
   {
-    return f[1] > s[1];
+    return left_sum[1] > right_sum[1];
   });
 
-  set_sort_vect.push_back(vector_helper[0]);
-  for(int i = 1; i < vector_helper.size(); i++)
+  arr_sort_vect.push_back(vector_helper[0]);
+  for(std::size_t i = 1; i < vector_helper.size(); i++)
   {
     if(vector_helper[i][1] != vector_helper[i - 1][1])
     {
-      set_sort_vect.push_back(vector_helper[i]);
+      arr_sort_vect.push_back(vector_helper[i]);
     }
   }
-  int c = LogarifmTwo(2 * set_sort_vect.size() - 1);
+  int c = LogarifmTwo(2 * arr_sort_vect.size() - 1);
 
   TreeSeg tree_seg(n, c - 1);
 
@@ -265,21 +277,15 @@ int main(){
   else{
     tree_seg.FillTree();
 
-    std::cout << std::max(tree_seg.tree[0].l_value, tree_seg.tree[0].r_value)  << '\n';
+    std::cout << std::max(tree_seg.tree[0].left_value, tree_seg.tree[0].right_value)  << '\n';
 
-    std::vector<int> way(std::max(tree_seg.tree[0].l_value, tree_seg.tree[0].r_value), 0);
-
-    if(tree_seg.tree[0].l_value > tree_seg.tree[0].r_value) {
-      FindRightWay(way, tree_seg, 1);
+    std::vector<int> way(std::max(tree_seg.tree[0].left_value, tree_seg.tree[0].right_value), 0);
+    if(tree_seg.tree[0].left_value > tree_seg.tree[0].right_value) {
+      tree_seg.FindRightWay(way, 1);
     }
     else{
-      FindRightWay(way, tree_seg, 0);
+      tree_seg.FindRightWay(way, 0);
     }
-
-    std::cout << init_vector[way[0]][1] << ' ';
-    for (int i = 1; i < std::max(tree_seg.tree[0].l_value, tree_seg.tree[0].r_value); i++) {
-      std::cout << init_vector[way[i]][1] << ' ';
-      assert(way[i] != 0);
-    }
+    OutputInCout(init_vector, way, std::max(tree_seg.tree[0].left_value, tree_seg.tree[0].right_value));
   }
 }
