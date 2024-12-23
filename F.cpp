@@ -1,235 +1,189 @@
-x#include<iostream>
+#include<iostream>
+#include<vector>
+#include<array>
+#include<stack>
+
+#include<iostream>
 #include<vector>
 #include<stack>
 #include<set>
+#include<array>
 
-const int MAX_TWO_DEGREE = 22;
+#define MAX_CAPACITY 1000000000000000
 
-struct Vertex {
-  struct Edge{
-    int numb;
-    int numb_end;
-  };
-  int color = 0;
-  int t_in  = 0;
-  int parent = -1;
-  std::vector<Edge> edges_to = {};
 
-  bool IsEdgVector(int number){
-    for(std::size_t i = 0; i < edges_to.size(); i++){
-      if(edges_to[i].numb_end == number){
-        return true;
-      }
-    }
-    return false;
-  }
+
+struct Edge{
+  long long int from = 0;
+  long long int where = 0;
+  long long int cap = 0;
+  long long int ost_cap = 0;
+  long long int color = 0;
+  Edge* ob = nullptr;
 };
 
-struct GraphWay {
- private:
-
+struct Top {
+  long long int color = 0;
+  long long int flow = 0;
+  std::vector<Edge *> edges_to = {};
 };
 
 
 class Graph{
-
- private:
-  std::vector<Vertex> tops;
-  int count_top;
-  int count_edg;
-  int time = 0;
-  int deep = 0;
-  int ans  = 0;
-  std::vector<std::pair<int, int>> edg = {};
-  std::vector<bool> is_bridges = {};
-  std::vector<int> arr_in  = {};
-  std::vector<int> arr_out = {};
-  std::vector<int> arr_deep = {};
-  std::vector<int> arr_deep_bridges = {};
-  std::vector<std::vector<int>>  dp = {};
-
  public:
-  Graph* GraphDp;
+  std::deque<Top> tops;
+  long long int count_top;
+  long long int count_edg;
+  std::deque<long long int> container_bfs = {};
+  std::vector<Edge *> begin_edges  = {};
+  std::vector<long long int> dp;
 
-  static Graph ReadGraph(int n, int m){
-    Graph to_ret(n, m);
-    int first_top, second_top;
-    for (int i = 0; i < to_ret.count_edg; i++) {
-      std::cin >> first_top >> second_top;
-      to_ret.AddEdge(first_top - 1, second_top - 1, i);
+  Graph(long long int n, long long int m=0) : count_top(n + 2), count_edg(m), begin_edges(m, nullptr), tops(n + 2), dp(n + 2, 0) {}
+
+  Edge * AddEdge(long long int from, long long int where, long long int cap=MAX_CAPACITY) {
+    Edge *meow = new Edge;
+    meow->from = from;
+    meow->where = where;
+    meow->cap = cap;
+    meow->ost_cap = cap;
+    meow->color = 0;
+
+    tops[from].edges_to.push_back(meow);
+    return meow;
+  }
+
+  void GrapCinMatrix(long long int m = -1) {
+    if (m != -1) count_edg = m;
+    for (long long int i = 0; i < count_edg; i++) {
+      long long int f, s;
+      std::cin >> f >> s;
+      Edge* meow = AddEdge(f, s);
+      Edge* meow_ob = AddEdge(s, f, 0);
+      meow->ob = meow_ob;
+      meow_ob->ob = meow;
     }
-    return to_ret;
-  }
+    tops[0].flow = MAX_CAPACITY;
+    tops[count_top - 1].flow = MAX_CAPACITY;
 
-  Graph(int n, int m=0) : count_top(n), arr_deep_bridges(n), arr_in(n, 0), arr_out(n, 0), arr_deep(n, 0), dp(n, std::vector(MAX_TWO_DEGREE - 1, 0)), count_edg(m), tops(n), is_bridges(m, false) {}
+    for (long long int i = 1; i < (count_top - 1); i++) {
+      Edge* meow = AddEdge(0, i, 0);
+      Edge* meow_ob = AddEdge(i, 0, 0);
+      meow->ob = meow_ob;
+      meow_ob->ob = meow;
 
-  void AddEdge(int top, int second_top, int numb){
-    edg.push_back({top, second_top});
-
-    tops[top].edges_to.push_back({second_top, numb});
-    tops[second_top].edges_to.push_back({top, numb});
-  }
-
-  int GetAns(){
-    return ans;
-  }
-  void FillWhite(){
-    for(int i = 0; i < count_top; i++) {
-      tops[i].color = 0;
+      Edge* meow1 = AddEdge(i, count_top - 1, 0);
+      Edge* meow_ob1 = AddEdge(count_top - 1, i, 0);
+      meow1->ob = meow_ob1;
+      meow_ob1->ob = meow1;
     }
   }
 
-  int DFSTBuildTreeFromGraph(int cur_top, Graph& graph) {
-    graph.tops[cur_top].color = 1;
-    auto meow = graph.tops[cur_top].edges_to.begin();;
-    for(int i = 0; i < graph.tops[cur_top].edges_to.size(); i++, meow++){
-      if(graph.tops[(*meow).first].color == 0){
-        tops[cur_top].edges_to.push_back(*meow);
-        DFSToBuildTree((*meow).first);
+  bool FillDP() {
+    container_bfs = std::deque<long long int>();
+    dp = std::vector<long long int>(count_top, -1);
+    long long int cur_top;
+    container_bfs.push_back(0);
+    dp[0] = 0;
+    while(!container_bfs.empty()) {
+      cur_top = container_bfs.front();
+      container_bfs.pop_front();
+      for(Edge* i : tops[cur_top].edges_to){
+        if((i->ost_cap > 0) && (dp[i->where] == -1)){
+          dp[i->where] = dp[cur_top] + 1;
+          if(i->where == (count_top - 1)) {
+            return true;
+          }
+          container_bfs.push_back(i->where);
+        }
       }
     }
-    graph.tops[cur_top].color = 2;
+    return (dp[count_top - 1] != -1);
+  }
+
+  long long int DFS(long long int cur_top, long long int able_capacity, int color) {
+    if(((cur_top == (tops.size() - 1) )|| (able_capacity == 0))){
+      return able_capacity;
+    }
+    auto meow = tops[cur_top].edges_to.begin();
+    for(long long int i = 0; i < tops[cur_top].edges_to.size(); i++, meow++){
+      if((*meow)->color != color) {
+        if(dp[(*meow)->where] == dp[cur_top] + 1){
+          long long int delta = DFS((*meow)->where, std::min(able_capacity, (*meow)->ost_cap), color);
+          if(delta != 0) {
+            if((*meow)->ost_cap != MAX_CAPACITY) (*meow)->ost_cap -= delta;
+            if((*meow)->ob != nullptr) (*meow)->ob->ost_cap += delta;
+            return delta;
+          }
+        }
+        (*meow)->color = color;
+      }
+    }
     return 0;
   }
 
-  void DFSSetToIn(int cur_top ,int parent){
-    tops[cur_top].color = *cnt;
-    tops[cur_top].t_in = *cnt;
-    (*cnt)++;
-    auto meow = tops[cur_top].edges_to.begin();
-    for(int i = 0; i < tops[cur_top].edges_to.size(); i++, meow++){
-      if(tops[(*meow).first].color != 0) {
-        if((*meow).first != parent) {
-          tops[cur_top].color = std::min(tops[(*meow).first].color, tops[cur_top].color);
-        }
+  long long int findMaxFlow() {
+    long long int max_flow = 0;
+    long long int delta = -1;
+    int color = 2;
+    while(FillDP()) {
+      color++;
+      delta = DFS(0, MAX_CAPACITY, color);
+
+      while(delta != 0){
+        max_flow += delta;
+        delta = DFS(0, MAX_CAPACITY, color);
       }
     }
-    meow = tops[cur_top].edges_to.begin();
-    for(int i = 0; i < tops[cur_top].edges_to.size(); i++, meow++){
-      if(tops[(*meow).first].color == 0) {
-        DFSSetToIn((*meow).first, cur_top);
-        tops[cur_top].color = std::min(tops[(*meow).first].color, tops[cur_top].color);
+    return max_flow;
+  }
+
+  long long int BinSearchMaxFlow(long long int min_flow, long long int max_flow, long long int sum) {
+    int result = max_flow;
+
+
+    while (min_flow <= max_flow) {
+      int between = min_flow + (max_flow - min_flow) / 2;
+
+      for(std::size_t i = 1; i < (count_top - 1); i++){
+        tops[0].edges_to[i - 1]->ost_cap = tops[i].flow;
+        tops[0].edges_to[i - 1]->cap = tops[i].flow;
+      }
+      for(std::size_t i = 1; i < (count_top - 1); i++){
+        tops[i].edges_to[tops[i].edges_to.size() - 1]->ost_cap = between;
+        tops[i].edges_to[tops[i].edges_to.size() - 1]->cap = between;
+      }
+
+      if (findMaxFlow() == sum) {
+        result = between;
+        max_flow = between - 1;
+      } else {
+        min_flow = between + 1;
       }
     }
-  }
-  void FindBridges(){
-    Graph to_ret(count_top);
-    to_ret.DFSTBuildTreeFromGraph(0, *this);
-    int cnt = 1;
-    this->cnt = &cnt;
-
-    FillWhite();
-
-    DFSSetToIn(0,  -1);
-
-    for(int i = 0; i  < edg.size(); i++){
-      if (to_ret.tops[edg[i].first].IsEdgVector(edg[i].second)) {
-        if (tops[edg[i].second].color == tops[edg[i].second].t_in) {
-          is_bridges[i] = true;
-          ans++;
-        }
-      }
-      else if (to_ret.tops[edg[i].second].IsEdgVector(edg[i].first)) {
-        if (tops[edg[i].first].color == tops[edg[i].first].t_in) {
-          is_bridges[i] = true;
-          ans++;
-        }
-      }
-    }
+    return result;
   }
 
-  void Fill_dp(int main){
-    if(GraphDp->tops[main].parent == -1) GraphDp->tops[main].parent = main;
-    GraphDp->arr_in[main] = GraphDp->time++;
-    GraphDp->arr_deep[main] = GraphDp->deep++;
-
-    tops[main].color = 1;
-    for (int i = 0; i < tops[main].edges_to.size(); i++) {
-      if(tops[tops[main].edges_to[i].first].color == 0){
-        GraphDp->tops[main].edges_to.push_back({tops[main].edges_to[i].first, -1});
-        GraphDp->tops[tops[main].edges_to[i].first].edges_to.push_back({main, -1});
-        GraphDp->arr_deep_bridges[tops[main].edges_to[i].first] = GraphDp->arr_deep_bridges[main];
-        if(is_bridges[tops[main].edges_to[i].second]){
-          GraphDp->arr_deep_bridges[tops[main].edges_to[i].first]++;
-        }
-        GraphDp->tops[tops[main].edges_to[i].first].parent = main;
-        Fill_dp(tops[main].edges_to[i].first);
-      }
-    }
-    tops[main].color = 2;
-    GraphDp->deep--;
-    GraphDp->arr_out[main] = GraphDp->time++;
-
-    return;
-  }
-
-  bool IsLeader(int x, int y){
-    if((arr_in[x] <= arr_in[y]) && (arr_out[x] >= arr_out[y]))  return true;
-
-    return false;
-  }
-
-  void Fill_dp(){
-    for(int i = 0; i < MAX_TWO_DEGREE; i++){
-      for(int j = 0; j < count_top; j++){
-        if(i == 0){
-          dp[j][i] = tops[j].parent;
-        }
-        else{
-          dp[j][i] = dp[dp[j][i - 1]][i - 1];
-        }
-      }
-    }
-  }
-
-  int LSA_with_distance(int x, int y){
-    if(IsLeader(x, y))   return arr_deep_bridges[x];
-    if(IsLeader(y, x))  return arr_deep_bridges[y];
-
-    int cur_top = x;
-
-    for(int i = MAX_TWO_DEGREE; i >= 0; i--){
-        if ((!IsLeader(dp[cur_top][i], y)) && (IsLeader(dp[cur_top][i + 1], y))) {
-          cur_top = dp[cur_top][i];
-        }
-    }
-    return arr_deep_bridges[tops[cur_top].parent];
-  }
 };
 
-
-int main(){
-  std::ios_base::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-  int n, m, f , ans_size;
+int main() {
+  long long int n, m, flow, max_flow = 0, sum = 0;
   std::cin >> n >> m;
 
-  Graph graph = Graph::ReadGraph(n, m);
-  std::cin >> f ;
+  Graph meow(n, m);
+  for(std::size_t i = 1; i < n + 1; i++){
+    std::cin >> flow;
+    max_flow = std::max(max_flow, flow);
+    meow.tops[i].flow = flow;
+  }
+  meow.GrapCinMatrix();
 
-  graph.GrapCinMatrix(m);
-
-
-  graph.FindBridges();
-
-  graph.FillWhite();
-
-  Graph GraphDp(n, graph.GetAns());
-
-  graph.GraphDp = &GraphDp;
-  graph.Fill_dp(f - 1);
-  GraphDp.Fill_dp();
-
-  std::cin >> ans_size;
-
-  std::vector<int> deep   (ans_size, 0);
-
-  for(int i = 0; i < ans_size; i++){
-    std::cin >> n >> m;
-    deep[i] = GraphDp.LSA_with_distance(n - 1, m - 1);
+  for(std::size_t i = 1; i < n + 1; i++){
+    sum += meow.tops[i].flow;
   }
 
-  for(int i = 0; i < deep.size(); i++){
-    std::cout << deep[i] << '\n';
-  }
-};
+
+  max_flow = meow.BinSearchMaxFlow(0, max_flow + 1, sum);
+  std::cout << max_flow << '\n';
+
+
+}
