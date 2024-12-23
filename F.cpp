@@ -14,8 +14,8 @@
 
 
 struct Edge{
-  long long int from = 0;
-  long long int where = 0;
+  long long int numb_begin = 0;
+  long long int numb_end = 0;
   long long int cap = 0;
   long long int ost_cap = 0;
   long long int color = 0;
@@ -30,7 +30,7 @@ struct Top {
 
 
 class Graph{
- public:
+ private:
   std::deque<Top> tops;
   long long int count_top;
   long long int count_edg;
@@ -38,47 +38,48 @@ class Graph{
   std::vector<Edge *> begin_edges  = {};
   std::vector<long long int> dp;
 
-  Graph(long long int n, long long int m=0) : count_top(n + 2), count_edg(m), begin_edges(m, nullptr), tops(n + 2), dp(n + 2, 0) {}
-
-  Edge * AddEdge(long long int from, long long int where, long long int cap=MAX_CAPACITY) {
-    Edge *meow = new Edge;
-    meow->from = from;
-    meow->where = where;
-    meow->cap = cap;
-    meow->ost_cap = cap;
-    meow->color = 0;
-
-    tops[from].edges_to.push_back(meow);
-    return meow;
-  }
-
-  void GrapCinMatrix(long long int m = -1) {
-    if (m != -1) count_edg = m;
-    for (long long int i = 0; i < count_edg; i++) {
+ public:
+  static Graph ReadGraph(long long int n, long long int m){
+    Graph to_ret(n, m);
+    to_ret.ReadTopsFlowFromCIn();
+    for (long long int i = 0; i < to_ret.count_edg; i++) {
       long long int f, s;
       std::cin >> f >> s;
-      Edge* meow = AddEdge(f, s);
-      Edge* meow_ob = AddEdge(s, f, 0);
+      Edge* meow = to_ret.AddEdge(f, s);
+      Edge* meow_ob = to_ret.AddEdge(s, f, 0);
       meow->ob = meow_ob;
       meow_ob->ob = meow;
     }
+    to_ret.CreateSourceAndStock();
+
+    return to_ret;
+  }
+
+  void CreateSourceAndStock() {
     tops[0].flow = MAX_CAPACITY;
     tops[count_top - 1].flow = MAX_CAPACITY;
 
     for (long long int i = 1; i < (count_top - 1); i++) {
-      Edge* meow = AddEdge(0, i, 0);
-      Edge* meow_ob = AddEdge(i, 0, 0);
-      meow->ob = meow_ob;
-      meow_ob->ob = meow;
-
-      Edge* meow1 = AddEdge(i, count_top - 1, 0);
-      Edge* meow_ob1 = AddEdge(count_top - 1, i, 0);
-      meow1->ob = meow_ob1;
-      meow_ob1->ob = meow1;
+      AddEdge(0, i, 0);
+      AddEdge(i, count_top - 1, 0);
     }
   }
 
-  bool FillDP() {
+  Graph(long long int n, long long int m=0) : count_top(n + 2), count_edg(m), begin_edges(m, nullptr), tops(n + 2), dp(n + 2, 0) {}
+
+  Edge * AddEdge(long long int numb_begin, long long int numb_end, long long int cap=MAX_CAPACITY) {
+    Edge *meow = new Edge;
+    meow->numb_begin = numb_begin;
+    meow->numb_end = numb_end;
+    meow->cap = cap;
+    meow->ost_cap = cap;
+    meow->color = 0;
+
+    tops[numb_begin].edges_to.push_back(meow);
+    return meow;
+  }
+
+  bool BFS() {
     container_bfs = std::deque<long long int>();
     dp = std::vector<long long int>(count_top, -1);
     long long int cur_top;
@@ -88,12 +89,12 @@ class Graph{
       cur_top = container_bfs.front();
       container_bfs.pop_front();
       for(Edge* i : tops[cur_top].edges_to){
-        if((i->ost_cap > 0) && (dp[i->where] == -1)){
-          dp[i->where] = dp[cur_top] + 1;
-          if(i->where == (count_top - 1)) {
+        if((i->ost_cap > 0) && (dp[i->numb_end] == -1)){
+          dp[i->numb_end] = dp[cur_top] + 1;
+          if(i->numb_end == (count_top - 1)) {
             return true;
           }
-          container_bfs.push_back(i->where);
+          container_bfs.push_back(i->numb_end);
         }
       }
     }
@@ -107,8 +108,8 @@ class Graph{
     auto meow = tops[cur_top].edges_to.begin();
     for(long long int i = 0; i < tops[cur_top].edges_to.size(); i++, meow++){
       if((*meow)->color != color) {
-        if(dp[(*meow)->where] == dp[cur_top] + 1){
-          long long int delta = DFS((*meow)->where, std::min(able_capacity, (*meow)->ost_cap), color);
+        if(dp[(*meow)->numb_end] == dp[cur_top] + 1){
+          long long int delta = DFS((*meow)->numb_end, std::min(able_capacity, (*meow)->ost_cap), color);
           if(delta != 0) {
             if((*meow)->ost_cap != MAX_CAPACITY) (*meow)->ost_cap -= delta;
             if((*meow)->ob != nullptr) (*meow)->ob->ost_cap += delta;
@@ -125,7 +126,7 @@ class Graph{
     long long int max_flow = 0;
     long long int delta = -1;
     int color = 2;
-    while(FillDP()) {
+    while(BFS()) {
       color++;
       delta = DFS(0, MAX_CAPACITY, color);
 
@@ -163,24 +164,30 @@ class Graph{
     return result;
   }
 
+  const std::deque<Top>& GetTops() {
+    return tops;
+  }
+
+  void ReadTopsFlowFromCIn() {
+    long long int flow, max_flow = 0;
+    for(std::size_t i = 1; i < count_top + 1; i++){
+      std::cin >> flow;
+      max_flow = std::max(max_flow, flow);
+      tops[i].flow = flow;
+    }
+  }
+
 };
 
 int main() {
-  long long int n, m, flow, max_flow = 0, sum = 0;
+  long long int n, m, max_flow = 0, sum = 0;
   std::cin >> n >> m;
 
-  Graph meow(n, m);
-  for(std::size_t i = 1; i < n + 1; i++){
-    std::cin >> flow;
-    max_flow = std::max(max_flow, flow);
-    meow.tops[i].flow = flow;
-  }
-  meow.GrapCinMatrix();
+  Graph meow = Graph::ReadGraph(n, m);
 
   for(std::size_t i = 1; i < n + 1; i++){
-    sum += meow.tops[i].flow;
+    sum += meow.GetTops()[i].flow;
   }
-
 
   max_flow = meow.BinSearchMaxFlow(0, max_flow + 1, sum);
   std::cout << max_flow << '\n';
