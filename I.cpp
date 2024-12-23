@@ -2,6 +2,31 @@
 #include<vector>
 
 
+class BigInt{
+ public:
+  std::string str_int;
+  
+  BigInt(const std::string& numb) : str_int(numb) {}
+
+  void DecrementNumbInString(){
+    int me = str_int.size() - 1;
+    while(str_int[me] == '0'){
+      me--;
+    }
+    str_int[me] = '0' + (str_int[me] - '0' - 1);
+    for(int i = me + 1; i < str_int.size(); i++){
+      str_int[i] = '9';
+    }
+  }
+
+  void OpDivideTen(){
+    str_int.pop_back();
+  }
+  int OpRemainsTen(){
+    return str_int.back() - '0';
+  }
+};
+
 class Matrix {
  public:
   long long mod;
@@ -46,19 +71,18 @@ class Matrix {
     }
   }
 
-  Matrix MatrixpowerString(const std::string& power, int first_of_end=-2){
-    if(first_of_end == -2) first_of_end = power.size();
-    if(first_of_end == -1) return MatrixPower(0);
+  Matrix MatrixpowerBigInt(BigInt& power){
+    power.DecrementNumbInString();
 
-    if(first_of_end == 0){
-      char numb = power[first_of_end];
-      int deg = numb - '0';
+    if(power.str_int.size() == 0){
+      int deg = power.OpRemainsTen();
+      power.OpDivideTen();
       return MatrixPower(deg);
     }
-    char numb = power[first_of_end];
-    int deg = numb - '0';
+    int deg = power.OpRemainsTen();
+    power.OpDivideTen();
 
-    Matrix res_matrix = MatrixpowerString(power, first_of_end - 1);
+    Matrix res_matrix = MatrixpowerBigInt(power);
     res_matrix = res_matrix.MatrixPower(10);
     Matrix res_matrix2 = MatrixPower(deg);
     return (res_matrix * res_matrix2);
@@ -116,16 +140,6 @@ Matrix FillTransitionalMatrix(long long int max_dp, int n){
   return transition_matrix;
 }
 
-void ParseString(std::string& m){
-  int me = m.size() - 1;
-  while(m[me] == '0'){
-    me--;
-  }
-  m[me] = '0' + (m[me] - '0' - 1);
-  for(int i = me + 1; i < m.size(); i++){
-    m[i] = '9';
-  }
-}
 
 int main(){
   int size, mod;
@@ -140,8 +154,8 @@ int main(){
 
   Matrix transition_matrix = FillTransitionalMatrix(max_dp, size);
   transition_matrix.mod = mod;
-  ParseString(string_power);
-  transition_matrix = transition_matrix.MatrixpowerString(string_power);
+  BigInt power(string_power);
+  transition_matrix = transition_matrix.MatrixpowerBigInt(power);
   int sum = transition_matrix.MakeSumByMod(max_dp);
 
   std::cout << sum;
