@@ -1,14 +1,14 @@
-#include<iostream>
+x#include<iostream>
 #include<vector>
 #include<stack>
 #include<set>
 
 const int MAX_TWO_DEGREE = 22;
 
-struct Top {
+struct Vertex {
   struct Edge{
     int numb;
-    int where;
+    int numb_end;
   };
   int color = 0;
   int t_in  = 0;
@@ -17,7 +17,7 @@ struct Top {
 
   bool IsEdgVector(int number){
     for(std::size_t i = 0; i < edges_to.size(); i++){
-      if(edges_to[i].where == number){
+      if(edges_to[i].numb_end == number){
         return true;
       }
     }
@@ -34,7 +34,7 @@ struct GraphWay {
 class Graph{
 
  private:
-  std::vector<Top> tops;
+  std::vector<Vertex> tops;
   int count_top;
   int count_edg;
   int time = 0;
@@ -68,10 +68,6 @@ class Graph{
 
     tops[top].edges_to.push_back({second_top, numb});
     tops[second_top].edges_to.push_back({top, numb});
-  }
-
-  void GrapCinMatrix(int m = -1) {
-
   }
 
   int GetAns(){
@@ -223,9 +219,6 @@ int main(){
   graph.GraphDp = &GraphDp;
   graph.Fill_dp(f - 1);
   GraphDp.Fill_dp();
-
-
-
 
   std::cin >> ans_size;
 
