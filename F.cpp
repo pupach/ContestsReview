@@ -3,12 +3,6 @@
 #include<array>
 #include<stack>
 
-#include<iostream>
-#include<vector>
-#include<stack>
-#include<set>
-#include<array>
-
 #define MAX_CAPACITY 1000000000000000
 
 
@@ -39,8 +33,8 @@ class Graph{
   std::vector<long long int> dp;
 
  public:
-  static Graph ReadGraph(long long int n, long long int m){
-    Graph to_ret(n, m);
+  static Graph ReadGraph(long long int amount_vertex, long long int amount_edge){
+    Graph to_ret(amount_vertex, amount_edge);
     to_ret.ReadTopsFlowFromCIn();
     for (long long int i = 0; i < to_ret.count_edg; i++) {
       long long int f, s;
@@ -51,7 +45,7 @@ class Graph{
       meow_ob->ob = meow;
     }
     to_ret.CreateSourceAndStock();
-
+    
     return to_ret;
   }
 
@@ -65,7 +59,7 @@ class Graph{
     }
   }
 
-  Graph(long long int n, long long int m=0) : count_top(n + 2), count_edg(m), begin_edges(m, nullptr), tops(n + 2), dp(n + 2, 0) {}
+  Graph(long long int amount_vertex, long long int amount_edge=0) : count_top(amount_vertex + 2), count_edg(amount_edge), begin_edges(amount_edge, nullptr), tops(amount_vertex + 2), dp(amount_vertex + 2, 0) {}
 
   Edge * AddEdge(long long int numb_begin, long long int numb_end, long long int cap=MAX_CAPACITY) {
     Edge *meow = new Edge;
@@ -180,17 +174,15 @@ class Graph{
 };
 
 int main() {
-  long long int n, m, max_flow = 0, sum = 0;
-  std::cin >> n >> m;
+  long long int amount_vertex, amount_edge, max_flow = 0, sum = 0;
+  std::cin >> amount_vertex >> amount_edge;
 
-  Graph meow = Graph::ReadGraph(n, m);
+  Graph meow = Graph::ReadGraph(amount_vertex, amount_edge);
 
-  for(std::size_t i = 1; i < n + 1; i++){
+  for(std::size_t i = 1; i < amount_vertex + 1; i++){
     sum += meow.GetTops()[i].flow;
   }
 
   max_flow = meow.BinSearchMaxFlow(0, max_flow + 1, sum);
   std::cout << max_flow << '\n';
-
-
 }
